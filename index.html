@@ -67,7 +67,11 @@
  <div id="chatbox">
     <div class="message welcome" id="welcome">Hi! I'm <strong>ErgoBot</strong>. Let's go through a quick office ergonomics self-check.</div>
     <div id="messages"></div>
-    <div id="controls" class="buttons"></div>
+    <div id="controls" class="buttons">
+  <input type="text" id="userInput" placeholder="Ask me about ergonomics..." style="padding: 10px; width: 70%; border-radius: 5px; border: 1px solid #ccc;">
+  <button onclick="handleUserQuestion()">Send</button>
+</div>
+
   </div>
 
 
@@ -227,6 +231,52 @@ doc.setFont("arial", "normal"); // Reset to normal
   doc.save("ErgoBot_SelfCheck_Summary.pdf");
 }
 
+const tips = [
+  {
+    keyword: ["monitor", "eye", "screen"],
+    tip: "Adjust your monitor so the top is at or just below eye level. Use a monitor riser or books if needed.",
+    image: "1Eye-level.png"
+  },
+  {
+    keyword: ["feet", "floor", "footrest"],
+    tip: "Use a footrest or adjust your chair height so your feet rest flat and your thighs are parallel to the floor.",
+    image: "1Feet.png"
+  },
+  {
+    keyword: ["keyboard", "elbow", "wrists"],
+    tip: "Adjust your desk or chair so your elbows are at 90 degrees and your wrists remain neutral.",
+    image: "1Elbow.png"
+  },
+  {
+    keyword: ["break", "stretch", "20-20-20"],
+    tip: "Try the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds and stand or stretch.",
+    image: "1Stretch.png"
+  }
+];
+
+function handleUserQuestion() {
+  const input = document.getElementById('userInput');
+  const query = input.value.trim();
+  if (!query) return;
+
+  appendMessage(query, 'user');
+  input.value = "";
+
+  const lowerQuery = query.toLowerCase();
+
+  let matched = false;
+  for (const item of tips) {
+    if (item.keyword.some(k => lowerQuery.includes(k))) {
+      appendMessage(item.tip, 'bot', item.image);
+      matched = true;
+      break;
+    }
+  }
+
+  if (!matched) {
+    appendMessage("Hmm, I'm not sure how to answer that. Try asking about your monitor, feet, keyboard, or breaks.", 'bot');
+  }
+}
 
     // Start the self-check with a styled welcome message
     showQuestion();
