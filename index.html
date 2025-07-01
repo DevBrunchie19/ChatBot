@@ -4,7 +4,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ErgoBot - Ergonomics Chat</title>
+  <title>BeckBot</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -72,10 +72,10 @@
 </head>
 <body>
   <div id="chatbox">
-    <div class="message welcome" id="welcome">Hi! I'm <strong>ErgoBot</strong>. Ask me any question about office ergonomics!</div>
+    <div class="message welcome" id="welcome">Hi! I'm <strong>BeckBot</strong>. What can I help you with today?</div>
     <div id="messages"></div>
     <div id="controls" class="buttons">
-      <input type="text" id="userInput" placeholder="Ask me about ergonomics...">
+      <input type="text" id="userInput" placeholder="Type your question here">
       <button onclick="handleUserQuestion()">Send</button>
     </div>
   </div>
@@ -143,7 +143,7 @@
       }
 
          if (!matched) {
-      appendMessage("I'm not sure about that one. Try asking about your monitor, feet, keyboard, or taking breaks.", 'bot');
+      appendMessage("Hmmm, I'm not sure about that one, please be patient, I'm only a few hours old. Try asking about office ergonomics topics i.e. your monitor, feet, keyboard, or taking breaks.", 'bot');
     }
   }
 
