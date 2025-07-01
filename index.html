@@ -4,7 +4,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DLT HelpBot</title>
+  <title>ErgoBot - Ergonomics Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -72,10 +72,10 @@
 </head>
 <body>
   <div id="chatbox">
-    <div class="message welcome" id="welcome">Hi! I'm <strong>BeckBot</strong>. What digital learning query can I help you with</div>
+    <div class="message welcome" id="welcome">Hi! I'm <strong>ErgoBot</strong>. Ask me any question about office ergonomics!</div>
     <div id="messages"></div>
     <div id="controls" class="buttons">
-      <input type="text" id="userInput" placeholder="Type your question here">
+      <input type="text" id="userInput" placeholder="Ask me about ergonomics...">
       <button onclick="handleUserQuestion()">Send</button>
     </div>
   </div>
@@ -125,38 +125,6 @@
 
     function handleUserQuestion() {
       const input = document.getElementById('userInput');
-      const input = document.getElementById('userInput');
-
-input.addEventListener("keypress", function(event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    handleUserQuestion();
-  }
-});
-
-function handleUserQuestion() {
-  const query = input.value.trim();
-  if (!query) return;
-
-  appendMessage(query, 'user');
-  input.value = "";
-
-  const lowerQuery = query.toLowerCase();
-
-  let matched = false;
-  for (const item of tips) {
-    if (item.keyword.some(k => lowerQuery.includes(k))) {
-      appendMessage(item.tip, 'bot', item.image);
-      matched = true;
-      break;
-    }
-  }
-
-  if (!matched) {
-    appendMessage("I'm not sure about that one. Try asking about your monitor, feet, keyboard, or taking breaks.", 'bot');
-  }
-}
-
       const query = input.value.trim();
       if (!query) return;
 
@@ -174,10 +142,19 @@ function handleUserQuestion() {
         }
       }
 
-      if (!matched) {
-        appendMessage("I'm not sure about that one. Try asking about your monitor, feet, keyboard, or taking breaks.", 'bot');
-      }
+         if (!matched) {
+      appendMessage("I'm not sure about that one. Try asking about your monitor, feet, keyboard, or taking breaks.", 'bot');
     }
+  }
+
+  // Allow pressing Enter to submit the question
+  document.getElementById('userInput').addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleUserQuestion();
+    }
+  });
+
   </script>
 </body>
 </html>
