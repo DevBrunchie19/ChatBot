@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ErgoBot - Ergonomics Self-Check</title>
+  <style>
+     body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      padding: 10px;
+    }
+    #chatbox {
+      background: white;
+      max-width: 600px;
+      margin: auto;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+.welcome {
+      background-color: #b91e71;
+      color: #ffff;
+      text-align: left;
+      
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+    }
+    .bot {
+      background-color: #FCE8F2;
+      color: #00000;
+      text-align: left;
+      margin-right:10%;
+    }
+    .user {
+      background-color: #e9ecef;
+      color: #212529;
+      text-align: center;
+      margin-left:50%;
+    }
+    .buttons {
+      margin-top: 10px;
+      text-align: center;
+    }
+    button {
+      padding: 8px 15px;
+      margin: 5px;
+      background-color: #b91e71;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .tip-image {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+ <div id="chatbox">
+    <div class="message welcome" id="welcome">Hi! I'm <strong>ErgoBot</strong>. Let's go through a quick office ergonomics self-check.</div>
+    <div id="messages"></div>
+    <div id="controls" class="buttons"></div>
+  </div>
+
+
+   <script>
+    const messages = document.getElementById('messages');
+    const controls = document.getElementById('controls');
+     const welcomeMessage = document.getElementById('welcome');
+
+
+    const questions = [
+      {
+        text: "Are your eyes level with the top of your monitor?",
+        tip: "Adjust your monitor so the top is at or just below eye level. Use a monitor riser or books if needed.",
+        image: "1Eye-level.png"
+      },
+      {
+        text: "Are your feet flat on the floor when seated?",
+        tip: "Use a footrest or adjust your chair height so your feet rest flat and your thighs are parallel to the floor.",
+        image: "1Feet.png"
+      },
+      {
+        text: "Is your keyboard at elbow height with wrists straight?",
+        tip: "Adjust your desk or chair so your elbows are at 90 degrees and your wrists remain neutral.",
+        image: "1Elbow.png"
+      },
+      {
+        text: "Do you take regular breaks (every 30–60 minutes)?",
+        tip: "Try the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds and stand or stretch.",
+        image: "1Stretch.png"
+      }
+    ];
+
+    const positiveFeedback = [
+      "Great job!",
+      "Nice work keeping things ergonomic!",
+      "Awesome! Keep it up!",
+      "You're doing well, keep going!",
+      "I am in awe!"
+    ];
+
+    let currentQuestion = 0;
+    let userAnswers = [];
+   
+    function appendMessage(text, sender, image = null) {
+      const msg = document.createElement('div');
+      msg.className = 'message ' + sender;
+      msg.innerText = text;
+      messages.appendChild(msg);
+
+      if (image) {
+        const img = document.createElement('img');
+        img.src = image;
+        img.alt = "Ergonomics Tip Image";
+        img.className = "tip-image";
+        messages.appendChild(img);
+      }
+
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+   function showQuestion() {
+      messages.innerHTML = '';
+      if (currentQuestion < questions.length) {
+        controls.innerHTML = '';
+        const q = questions[currentQuestion];
+        appendMessage(q.text, 'bot');
+        controls.innerHTML = `
+          <button onclick="handleAnswer(true)">Yes</button>
+          <button onclick="handleAnswer(false)">No</button>
+        `;
+      } else {
+        showSummary();
+      }
+    }
+
+
+    function handleAnswer(isYes) {
+      const q = questions[currentQuestion];
+      userAnswers.push({ question: q.text, answer: isYes ? "Yes" : "No", tip: isYes ? null : q.tip, image: isYes ? null : q.image });
+      controls.innerHTML = '';
+      appendMessage(isYes ? "Yes" : "No", 'user');
+      if (!isYes) {
+        appendMessage(q.tip, 'bot', q.image);
+      } else {
+        const feedback = positiveFeedback[Math.floor(Math.random() * positiveFeedback.length)];
+        appendMessage(feedback, 'bot');
+      }
+      controls.innerHTML = `<button onclick="nextQuestion()">Next Question</button>`;
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      showQuestion();
+    }
+  function showSummary() {
+      messages.innerHTML = '';
+      welcomeMessage.innerHTML = "Well done on completing the self-check!";
+      appendMessage("Here's a summary of your responses:", 'bot');
+      userAnswers.forEach(entry => {
+        appendMessage(entry.question, 'bot');
+        appendMessage(entry.answer, 'user');
+        if (entry.tip) {
+          appendMessage(entry.tip, 'bot', entry.image);
+        }
+      });
+      controls.innerHTML = `
+  <button onclick="restartBot()">Restart</button>
+  <button onclick="downloadPDF()">Download Summary</button>
+`;
+    }
+
+    function restartBot() {
+      messages.innerHTML = '';
+      welcomeMessage.innerHTML = "Hi! I'm <strong>ErgoBot</strong>. Let's go through a quick office ergonomics self-check.";
+      userAnswers = [];
+      currentQuestion = 0;
+      showQuestion();
+    }
+     async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+ let y = 15;
+  doc.setFontSize(18);
+  doc.setTextColor(185, 30, 113);  // DLT Pink
+doc.setFont("arial", "bold");
+  doc.text("ErgoBot Self-Check Summary", 20, y);
+doc.setFont("arial", "normal"); // Reset to normal
+  y += 15;
+
+  userAnswers.forEach((entry, i) => {
+  doc.setFontSize(14);
+  doc.setTextColor(0, 0, 0);  // black
+  doc.setFont("arial", "normal");
+  doc.text(`${i + 1}. ${entry.question}`, 20, y);
+  y += 9;
+
+  doc.setFontSize(14);
+  doc.setTextColor(185, 30, 113);  // DLT Pink
+  doc.setFont("arial", "bold");  // Bold for answers
+  doc.text(entry.answer, 25, y);
+  doc.setFont("arial", "normal"); // Reset to normal
+  y += 9;
+
+  if (entry.tip) {
+    doc.setFontSize(11);
+    doc.setTextColor(105, 105, 105);  // Dim Gray
+    doc.text(`Tip: ${entry.tip}`, 30, y);
+    y += 12;
+  }
+    if (y > 270) {
+      doc.addPage();
+      y = 10;
+    }
+  });
+
+  doc.save("ErgoBot_SelfCheck_Summary.pdf");
+}
+
+
+    // Start the self-check with a styled welcome message
+    showQuestion();
+  </script>
+</body>
+</html>
