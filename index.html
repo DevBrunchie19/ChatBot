@@ -140,14 +140,15 @@
 
       const lowerQuery = query.toLowerCase();
 
-      let matched = false;
-      for (const item of tips) {
-        if (item.keyword.some(k => lowerQuery.includes(k))) {
-          appendMessage(item.tip, 'bot', item.image);
-          matched = true;
-          break;
-        }
-      }
+     let matched = false;
+for (const item of tips) {
+  if (item.keyword.some(k => new RegExp(`\\b${k}\\b`, 'i').test(lowerQuery))) {
+    appendMessage(item.tip, 'bot', item.image);
+    matched = true;
+    break;
+  }
+}
+
 
          if (!matched) {
       appendMessage("Hmmm, I'm not sure about that one, please be patient, I'm only a few hours old. Try asking about office ergonomics topics i.e. your monitor, feet, keyboard, or taking breaks.", 'bot');
