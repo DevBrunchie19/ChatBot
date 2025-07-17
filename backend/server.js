@@ -7,10 +7,13 @@ const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, '../')));
 
 const documentsDir = path.join(__dirname, 'data');
 let knowledgeBase = [];
@@ -78,4 +81,6 @@ function getExcerpt(text, term, len = 200) {
   return '...' + text.slice(start, end).trim() + '...';
 }
 
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Server running at http://localhost:${PORT}`)
+);
