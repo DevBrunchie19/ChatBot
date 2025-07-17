@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>McHelpie</title>
   <style>
     body {
@@ -57,11 +56,6 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    .tip-image {
-      max-width: 100%;
-      border-radius: 8px;
-      margin-top: 5px;
-    }
     input[type="text"] {
       padding: 10px;
       width: 70%;
@@ -72,10 +66,12 @@
 </head>
 <body>
   <div id="chatbox">
-    <div class="message welcome" id="welcome">Hi! I'm <strong>McHelpie</strong>. What can I help you with today?</div>
+    <div class="message welcome" id="welcome">
+      Hi! I'm <strong>McHelpie</strong>. What can I help you with today?
+    </div>
     <div id="messages"></div>
     <div id="controls" class="buttons">
-      <input type="text" id="userInput" placeholder="Type your question here">
+      <input type="text" id="userInput" placeholder="Type your question here" />
       <button onclick="handleUserQuestion()">Send</button>
     </div>
   </div>
@@ -83,91 +79,61 @@
   <script>
     const messages = document.getElementById('messages');
 
-    const tips = [
-      {
-        keyword: ["monitor", "eye", "screen"],
-        tip: "Adjust your monitor so the top is at or just below eye level. Use a monitor riser or books if needed.",
-        image: "1Eye-level.png"
-      },
-      {
-        keyword: ["feet", "floor", "footrest"],
-        tip: "Use a footrest or adjust your chair height so your feet rest flat and your thighs are parallel to the floor.",
-        image: "1Feet.png"
-      },
-      {
-        keyword: ["keyboard", "elbow", "wrists", "typing"],
-        tip: "Adjust your desk or chair so your elbows are at 90 degrees and your wrists remain neutral.",
-        image: "1Elbow.png"
-      },
-      {
-        keyword: ["help", "hi", "hello", "hey", "hola"],
-        tip: "Hi, I hope you're doing well, why dont you ask me something about office ergonomics?",
-        image: "1Elbow.png"
-      },
-      {
-        keyword: ["", "", "", ""],
-        tip: "insert tip information",
-        image: "1Elbow.png"
-      },
-      {
-        keyword: ["break", "stretch", "20-20-20", "rest"],
-        tip: "Try the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds and stand or stretch.",
-        image: "1Stretch.png"
-      }
-    ];
-
-    function appendMessage(text, sender, image = null) {
+    function appendMessage(text, sender) {
       const msg = document.createElement('div');
       msg.className = 'message ' + sender;
       msg.innerText = text;
       messages.appendChild(msg);
-
-      if (image) {
-        const img = document.createElement('img');
-        img.src = image;
-        img.alt = "Ergonomics Tip Image";
-        img.className = "tip-image";
-        messages.appendChild(img);
-      }
-
       messages.scrollTop = messages.scrollHeight;
     }
 
-    function handleUserQuestion() {
+    async function handleUserQuestion() {
       const input = document.getElementById('userInput');
       const query = input.value.trim();
       if (!query) return;
 
-      messages.innerHTML = '';
-      
       appendMessage(query, 'user');
       input.value = "";
 
-      const lowerQuery = query.toLowerCase();
+      appendMessage("⏳ Thinking...", 'bot');
 
-     let matched = false;
-for (const item of tips) {
-  if (item.keyword.some(k => new RegExp(`\\b${k}\\b`, 'i').test(lowerQuery))) {
-    appendMessage(item.tip, 'bot', item.image);
-    matched = true;
-    break;
-  }
-}
+      try {
+        const response = await fetch('http://localhost:3000/ask', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ question: query })
+        });
 
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
 
-         if (!matched) {
-      appendMessage("Hmmm, I'm not sure about that one, please be patient, I'm only a few hours old. Try asking about office ergonomics topics i.e. your monitor, feet, keyboard, or taking breaks.", 'bot');
+        const data = await response.json();
+
+        // Remove the "thinking" message
+        messages.lastChild.remove();
+
+        if (data.answer && data.answer.length > 0) {
+          data.answer.forEach(ans => appendMessage(ans, 'bot'));
+        } else {
+          appendMessage("🤔 I couldn't find anything relevant. Try rephrasing your question.", 'bot');
+        }
+      } catch (err) {
+        // Remove the "thinking" message
+        messages.lastChild.remove();
+        appendMessage(`⚠️ Error: ${err.message}`, 'bot');
+      }
     }
-  }
 
-  // Allow pressing Enter to submit the question
-  document.getElementById('userInput').addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleUserQuestion();
-    }
-  });
-
+    // Allow pressing Enter to send
+    document.getElementById('userInput').addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleUserQuestion();
+      }
+    });
   </script>
 </body>
 </html>
