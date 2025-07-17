@@ -98,7 +98,7 @@
       appendMessage("⏳ Thinking...", 'bot');
 
       try {
-        const response = await fetch('http://localhost:3000/ask', {
+        const response = await fetch('/ask',{
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
