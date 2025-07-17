@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Backend API for McHelpie bot with fuzzy document search",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fuse.js": "^6.6.2",
+    "mammoth": "^1.4.2",
+    "pdf-parse": "^1.1.1"
+  }
+}
