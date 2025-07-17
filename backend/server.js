@@ -1,7 +1,6 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const cors = require('cors');
 const Fuse = require('fuse.js');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
@@ -9,78 +8,57 @@ const mammoth = require('mammoth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(express.json());
-
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, '../')));
+app.use(express.static(path.join(__dirname, '../'))); // serve frontend
 
 const documentsDir = path.join(__dirname, 'data');
-let knowledgeBase = [];
 let fuse = null;
 
-// Load and parse documents (txt, pdf, docx)
 async function loadDocuments() {
-  const files = fs.readdirSync(documentsDir);
   const entries = [];
-
-  for (const file of files) {
-    const fullPath = path.join(documentsDir, file);
+  for (const file of fs.readdirSync(documentsDir)) {
     const ext = path.extname(file).toLowerCase();
-
-    let content = '';
+    const full = path.join(documentsDir, file);
+    let text = '';
     try {
-      if (ext === '.txt') {
-        content = fs.readFileSync(fullPath, 'utf-8');
-      } else if (ext === '.pdf') {
-        const dataBuffer = fs.readFileSync(fullPath);
-        const pdf = await pdfParse(dataBuffer);
-        content = pdf.text;
+      if (ext === '.txt') text = fs.readFileSync(full, 'utf-8');
+      else if (ext === '.pdf') {
+        const data = fs.readFileSync(full);
+        const pdf = await pdfParse(data);
+        text = pdf.text;
       } else if (ext === '.docx') {
-        const result = await mammoth.extractRawText({ path: fullPath });
-        content = result.value;
+        const ml = await mammoth.extractRawText({ path: full });
+        text = ml.value;
       }
-    } catch (err) {
-      console.error(`⚠️ Could not load ${file}:`, err.message);
+      entries.push({ content: text });
+    } catch (e) {
+      console.error(`Failed to load ${file}:`, e.message);
     }
-
-    if (content) entries.push({ content });
   }
-
-  knowledgeBase = entries;
-
-  fuse = new Fuse(knowledgeBase, {
+  fuse = new Fuse(entries, {
     keys: ['content'],
-    includeScore: true,
-    threshold: 0.4, // adjust for fuzziness
+    threshold: 0.4,
   });
-
-  console.log(`✅ Loaded ${entries.length} documents`);
+  console.log(`Loaded ${entries.length} documents.`);
 }
 
 loadDocuments();
 
 app.post('/ask', (req, res) => {
-  const question = req.body.question?.toLowerCase() || '';
-  if (!question) return res.status(400).json({ error: 'No question provided' });
-
-  const results = fuse.search(question);
-  if (!results.length) {
-    return res.json({ answer: ["🤔 I couldn't find anything relevant."] });
-  }
-
-  const topMatches = results.slice(0, 3).map(r => getExcerpt(r.item.content, question));
-  res.json({ answer: topMatches });
+  const q = (req.body.question || '').toLowerCase();
+  if (!q) return res.status(400).json({ error: 'No question' });
+  const hits = fuse.search(q).slice(0, 3);
+  const result = hits.length
+    ? hits.map(r => excerpt(r.item.content, q))
+    : ["🤔 I couldn't find anything relevant."];
+  res.json({ answer: result });
 });
 
-function getExcerpt(text, term, len = 200) {
-  const index = text.toLowerCase().indexOf(term);
-  if (index === -1) return text.slice(0, len).trim() + '...';
-  const start = Math.max(0, index - len / 2);
-  const end = Math.min(text.length, index + len / 2);
-  return '...' + text.slice(start, end).trim() + '...';
+function excerpt(text, q, len = 200) {
+  const i = text.toLowerCase().indexOf(q);
+  if (i < 0) return text.slice(0, len).trim() + '...';
+  const start = Math.max(0, i - len / 2);
+  return '...' + text.slice(start, start + len).trim() + '...';
 }
 
-app.listen(PORT, () =>
-  console.log(`🚀 Server running at http://localhost:${PORT}`)
-);
+app.listen(PORT, () => console.log(`Server at http://localhost:${PORT}`));
